@@ -1,0 +1,44 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Login from "./pages/auth/login";
+import Signupe from './pages/auth/signup';
+import Merger from './pages/merge';
+import Forgot from './pages/auth/forgot';
+import ResetPassword from './pages/auth/reset';
+// Temporary quick pages taaki links par click karne par screen blank na ho
+const Home = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Slate Production Engine View Canvas</div>;
+const Merge = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Merge Tool Workspace Layout Canvas</div>;
+const Split = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Split Tool Workspace Layout Canvas</div>;
+const Compress = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Compress Tool Workspace Layout Canvas</div>;
+const ImageToPdf = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Image to PDF Canvas Deck</div>;
+const Signup = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Signup Form Interface Wrapper</div>;
+const ForgotPassword = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Forgot Password Token Key Request Panel</div>;
+
+function App() {
+  return (
+  <>
+      {/* Root Layout Viewport Wrapper Container */}
+      <div className="h-screen w-screen bg-slate-50 text-slate-900 flex flex-col overflow-hidden">
+        
+        {/* Persistent Shared Header Area */}
+
+        {/* Dynamic Inner Page Workspace Switcher Frame Section */}
+        <main className="flex-1 overflow-auto relative">
+          <Routes>
+            <Route path="/" element={<Merger/>} />
+            <Route path="/merge" element={<Merger />} />
+            <Route path="/split" element={<Split />} />
+            <Route path="/compress" element={<Compress />} />
+            <Route path="/image-to-pdf" element={<ImageToPdf />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signupe />} />
+            <Route path="/forgot-password" element={<Forgot />} />
+            <Route path="/reset" element={<ResetPassword/>} />
+          </Routes>
+        </main>
+        
+      </div>
+      </>
+  );
+}
+
+export default App;
