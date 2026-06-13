@@ -3,10 +3,14 @@ from app.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine
 from app.models import User
+from app.merge import router as pdf_router
+
+
 
 User.metadata.create_all(bind=engine)
 
 app = FastAPI()
+app.include_router(pdf_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

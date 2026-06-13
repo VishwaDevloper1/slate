@@ -1,9 +1,71 @@
 import { useState } from 'react';
 import type { StagedFile } from '../types';
 import Header from '../layouts/header';
+import { Plus, X } from 'lucide-react';
+import api from '../services/api';
 
 export default function Merge() {
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
+  const handleMerge = async () => {
+    try {
+  
+      const formData = new FormData();
+  
+      stagedFiles.forEach((staged) => {
+        formData.append(
+          "files",
+          staged.file
+        );
+      });
+  
+      const response =
+        await api.post(
+          "/merge",
+          formData,
+          {
+            responseType: "blob",
+          }
+        );
+  
+      const blob = new Blob(
+        [response.data],
+        {
+          type: "application/pdf",
+        }
+      );
+  
+      const url =
+        window.URL.createObjectURL(blob);
+  
+      const link =
+        document.createElement("a");
+  
+      link.href = url;
+  
+      link.download =
+        "merged.pdf";
+  
+      document.body.appendChild(
+        link
+      );
+  
+      link.click();
+  
+      link.remove();
+  
+      window.URL.revokeObjectURL(
+        url
+      );
+  
+    } catch (error) {
+  
+      console.error(error);
+  
+      alert(
+        "Failed to merge PDFs"
+      );
+    }
+  };
 
   const handleTriggerFilePicker = () => {
     const input = document.createElement('input');
@@ -55,49 +117,72 @@ export default function Merge() {
               Select PDF files
             </button>
 
-            {/* Cloud Storage Auxiliary Badges (Google Drive / Dropbox Style) */}
-            <div className="flex flex-col gap-2">
-              <button className="bg-white hover:bg-slate-100 text-slate-700 p-2.5 rounded-full shadow-md border border-slate-200/60 transition-colors" title="Upload from Google Drive">
-                <svg className="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19.43 12.98l-6.73-11.66c-.37-.64-1.03-1.03-1.77-1.03h-1.86c-.74 0-1.4.39-1.77 1.03l-6.73 11.66c-.37.64-.37 1.42 0 2.06l1.86 3.22c.37.64 1.03 1.03 1.77 1.03h13.47c.74 0 1.4-.39 1.77-1.03l1.86-3.22c.37-.64.37-1.42 0-2.06zm-8.5-9.48h2.14l5.63 9.74h-2.14l-5.63-9.74z" />
-                </svg>
-              </button>
-              <button className="bg-white hover:bg-slate-100 text-slate-700 p-2.5 rounded-full shadow-md border border-slate-200/60 transition-colors" title="Upload from Dropbox">
-                <svg className="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M5.014 5.25l6.986 4.307-6.986 4.308-5.014-3.415zm13.972 0l5.014 3.2l-5.014 3.415-6.986-4.308zm-13.972 8.615l6.986 4.307-6.986 4.308-5.014-3.415zm13.972 0l5.014 3.2-5.014 3.415-6.986-4.308zM12 18.423l6.986-4.307 5.014 3.2-12 7.684-12-7.684 5.014-3.2z" />
-                </svg>
-              </button>
-            </div>
-          </div>
+      
 
           {/* Micro-interaction Drag Drop Note */}
           <p className="text-xs text-slate-400 mt-4 tracking-wide font-medium">
             or drop PDFs here
           </p>
         </div>
-      ) : (
+        </div>
+      ): (
         /* Staging Queue List View (Triggers once files are picked) */
         <div className="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl p-6 shadow-md font-sans">
-          <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
-            <h3 className="font-bold text-lg text-slate-800">Selected Files ({stagedFiles.length})</h3>
-            <button 
-              onClick={() => setStagedFiles([])} 
-              className="text-xs font-semibold text-red-500 hover:text-red-600 transition-colors"
-            >
-              Clear All
-            </button>
-          </div>
+        <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
+  <h3 className="font-bold text-lg text-slate-800">
+    Selected Files ({stagedFiles.length})
+  </h3>
+
+  <div className="flex items-center gap-3">
+    <button
+      onClick={handleTriggerFilePicker}
+      className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition"
+    >
+      <Plus size={16} />
+      Add PDF
+    </button>
+
+    <button
+      onClick={() => setStagedFiles([])}
+      className="text-xs font-semibold text-red-500 hover:text-red-600 transition-colors"
+    >
+      Clear All
+    </button>
+  </div>
+</div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto pr-2">
             {stagedFiles.map((staged) => (
-              <div key={staged.id} className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col justify-between relative group">
-                <p className="text-sm font-semibold text-slate-700 truncate mb-1 pr-4">{staged.name}</p>
-                <p className="text-xs text-slate-400 font-mono">{(staged.size / (1024 * 1024)).toFixed(2)} MB</p>
-              </div>
+              <div
+              key={staged.id}
+              className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col justify-between relative group"
+            >
+              <button
+                onClick={() =>
+                  setStagedFiles(prev =>
+                    prev.filter(
+                      file => file.id !== staged.id
+                    )
+                  )
+                }
+                className="absolute top-2 right-2 text-slate-400 hover:text-red-500 transition"
+              >
+                <X size={16} />
+              </button>
+            
+              <p className="text-sm font-semibold text-slate-700 truncate mb-1 pr-6">
+                {staged.name}
+              </p>
+            
+              <p className="text-xs text-slate-400 font-mono">
+                {(staged.size / (1024 * 1024)).toFixed(2)} MB
+              </p>
+            </div>
             ))}
           </div>
 
-          <button className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl shadow-lg shadow-red-600/10 transition-colors">
+          <button 
+           onClick={handleMerge} className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl shadow-lg shadow-red-600/10 transition-colors">
             Merge PDFs
           </button>
         </div>
