@@ -8,10 +8,10 @@ export default function Header() {
   const {isLoggedIn} = useAuth();
 
   const navLinks = [
-    { name: "MERGE PDF", href: "#" },
-    { name: "SPLIT PDF", href: "#" },
-    { name: "COMPRESS PDF", href: "#" },
-    { name: "CONVERT PDF", href: "#" },
+    { name: "MERGE PDF", href: "/merge" },
+    { name: "SPLIT PDF", href: "/split" },
+    { name: "COMPRESS PDF", href: "/compress" },
+    { name: "CONVERT PDF", href: "/image-to-pdf" },
   ];
 
   return (

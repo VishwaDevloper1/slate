@@ -4,6 +4,7 @@ import Signupe from './pages/auth/signup';
 import Merger from './pages/merge';
 import Forgot from './pages/auth/forgot';
 import ResetPassword from './pages/auth/reset';
+import MergeSuccess from './pages/merge_success';
 // Temporary quick pages taaki links par click karne par screen blank na ho
 const Home = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Slate Production Engine View Canvas</div>;
 const Merge = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Merge Tool Workspace Layout Canvas</div>;
@@ -33,6 +34,7 @@ function App() {
             <Route path="/signup" element={<Signupe />} />
             <Route path="/forgot-password" element={<Forgot />} />
             <Route path="/reset" element={<ResetPassword/>} />
+            <Route path="/merge-success" element={<MergeSuccess/>} />
           </Routes>
         </main>
         

@@ -1,71 +1,184 @@
 import { useState } from 'react';
+import { useNavigate} from 'react-router-dom';
 import type { StagedFile } from '../types';
 import Header from '../layouts/header';
-import { Plus, X } from 'lucide-react';
 import api from '../services/api';
+import { Plus, X, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+} from "@dnd-kit/core";
+
+import {
+  SortableContext,
+  rectSortingStrategy,
+  arrayMove,
+  useSortable,
+} from "@dnd-kit/sortable";
+
+import { CSS } from "@dnd-kit/utilities";
+
+
+
+
+/////////////<------------------------------------------>>>>>>>>>>>>>>>>>>>>---s.............>>>>>>>>>>-----------
+
+
+
+function SortableCard({
+  staged,
+  children,
+}: any) {
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({
+    id: staged.id,
+  });
+ 
+  const style = {
+    transform:
+      CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative"
+    >
+      {children(attributes, listeners)}
+    </div>
+  );
+}
+
+
+/////////////<------------------------------------------>>>>>>>>>>>>>>>>>>>>---s.............>>>>>>>>>>-----------
+
 
 export default function Merge() {
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
-  const handleMerge = async () => {
-    try {
-  
-      const formData = new FormData();
-  
-      stagedFiles.forEach((staged) => {
-        formData.append(
-          "files",
-          staged.file
-        );
-      });
-  
-      const response =
-        await api.post(
-          "/merge",
-          formData,
-          {
-            responseType: "blob",
-          }
-        );
-  
-      const blob = new Blob(
-        [response.data],
+  const [merging, setMerging] = useState(false);
+  const navigate = useNavigate()
+
+ const handleMerge = async () => {
+  try {
+    setMerging(true);
+
+    const formData = new FormData();
+
+    stagedFiles.forEach((staged) => {
+      formData.append(
+        "files",
+        staged.file
+      );
+    });
+
+    const response =
+      await api.post(
+        "/merge",
+        formData,
         {
-          type: "application/pdf",
+          responseType: "blob",
         }
       );
+
+    const blob = new Blob(
+      [response.data],
+      {
+        type: "application/pdf",
+      }
+    );
+    
+    const url =
+  window.URL.createObjectURL(blob);
+
+navigate(
+  "/merge-success",
+  {
+    state: {
+      downloadUrl: url,
+    },
+  }
+);
+
+    const link =
+      document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+      "merged.pdf";
+
+    document.body.appendChild(
+      link
+    );
+
+    link.click();
+
+    link.remove();
+
+    window.URL.revokeObjectURL(
+      url
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "Failed to merge PDFs"
+    );
+
+  } finally {
+
+    setMerging(false);
+
+  }
+};
+
+
+
+  /////////////<------------------------------------------>>>>>>>>>>>>>>>>>>>>---s.............>>>>>>>>>>-----------
+
+
+  const handleDragEnd = (event: any) => {
+
+    const { active, over } = event;
   
-      const url =
-        window.URL.createObjectURL(blob);
+    if (!over) return;
   
-      const link =
-        document.createElement("a");
+    if (active.id !== over.id) {
   
-      link.href = url;
+      setStagedFiles((items) => {
   
-      link.download =
-        "merged.pdf";
+        const oldIndex =
+          items.findIndex(
+            item => item.id === active.id
+          );
   
-      document.body.appendChild(
-        link
-      );
+        const newIndex =
+          items.findIndex(
+            item => item.id === over.id
+          );
   
-      link.click();
-  
-      link.remove();
-  
-      window.URL.revokeObjectURL(
-        url
-      );
-  
-    } catch (error) {
-  
-      console.error(error);
-  
-      alert(
-        "Failed to merge PDFs"
-      );
+        return arrayMove(
+          items,
+          oldIndex,
+          newIndex
+        );
+      });
     }
   };
+
+
+  /////////////<------------------------------------------>>>>>>>>>>>>>>>>>>>>---s.............>>>>>>>>>>-----------
+
 
   const handleTriggerFilePicker = () => {
     const input = document.createElement('input');
@@ -88,6 +201,12 @@ export default function Merge() {
     };
     input.click();
   };
+
+
+
+  /////////////<------------------------------------------>>>>>>>>>>>>>>>>>>>>---s.............>>>>>>>>>>-----------
+
+
 
   return (
     <>
@@ -150,13 +269,37 @@ export default function Merge() {
     </button>
   </div>
 </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto pr-2">
-            {stagedFiles.map((staged) => (
+
+
+
+<DndContext
+  collisionDetection={closestCenter}
+  onDragEnd={handleDragEnd}
+>
+  <SortableContext
+    items={stagedFiles.map(file => file.id)}
+    strategy={rectSortingStrategy}
+  >
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto pr-2">
+
+      {stagedFiles.map((staged) => (
+        <SortableCard
+          key={staged.id}
+          staged={staged}
+        >
+          {(attributes: any, listeners: any) => (
+            <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col justify-between relative group">
+
+              {/* Drag Handle */}
               <div
-              key={staged.id}
-              className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col justify-between relative group"
-            >
+                {...attributes}
+                {...listeners}
+                className="absolute top-2 left-2 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700"
+              >
+                <GripVertical size={18} />
+              </div>
+
+              {/* Delete Button */}
               <button
                 onClick={() =>
                   setStagedFiles(prev =>
@@ -169,22 +312,40 @@ export default function Merge() {
               >
                 <X size={16} />
               </button>
-            
-              <p className="text-sm font-semibold text-slate-700 truncate mb-1 pr-6">
+
+              <p className="text-sm font-semibold text-slate-700 truncate mb-1 pl-6 pr-6">
                 {staged.name}
               </p>
-            
+
               <p className="text-xs text-slate-400 font-mono">
                 {(staged.size / (1024 * 1024)).toFixed(2)} MB
               </p>
-            </div>
-            ))}
-          </div>
 
-          <button 
-           onClick={handleMerge} className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl shadow-lg shadow-red-600/10 transition-colors">
-            Merge PDFs
-          </button>
+            </div>
+          )}
+        </SortableCard>
+      ))}
+
+    </div>
+  </SortableContext>
+</DndContext>
+
+<button
+  onClick={handleMerge}
+  disabled={
+    stagedFiles.length < 2 ||
+    merging
+  }
+  className={`w-full mt-6 text-white font-semibold py-3 rounded-xl shadow-lg transition-colors ${
+    stagedFiles.length < 2 || merging
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-red-600 hover:bg-red-700 shadow-red-600/10"
+  }`}
+>
+  {merging
+    ? "Merging..."
+    : "Merge PDFs"}
+</button>
         </div>
       )}
     </div>
