@@ -5,10 +5,10 @@ import Merger from './pages/merge';
 import Forgot from './pages/auth/forgot';
 import ResetPassword from './pages/auth/reset';
 import MergeSuccess from './pages/merge_success';
+import Split from './pages/split';
 // Temporary quick pages taaki links par click karne par screen blank na ho
 const Home = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Slate Production Engine View Canvas</div>;
 const Merge = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Merge Tool Workspace Layout Canvas</div>;
-const Split = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Split Tool Workspace Layout Canvas</div>;
 const Compress = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Compress Tool Workspace Layout Canvas</div>;
 const ImageToPdf = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Image to PDF Canvas Deck</div>;
 const Signup = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Signup Form Interface Wrapper</div>;
