@@ -9,11 +9,6 @@ import Split from './pages/split';
 import Compress from './pages/Compress';
 import Convert from './pages/Convert';
 // Temporary quick pages taaki links par click karne par screen blank na ho
-const Home = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Slate Production Engine View Canvas</div>;
-const Merge = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Merge Tool Workspace Layout Canvas</div>;
-const Signup = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Signup Form Interface Wrapper</div>;
-const ForgotPassword = () => <div className="h-[80vh] flex items-center justify-center text-slate-400 font-medium font-sans">Forgot Password Token Key Request Panel</div>;
-
 function App() {
   return (
   <>
