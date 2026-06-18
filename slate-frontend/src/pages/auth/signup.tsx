@@ -54,7 +54,7 @@ const Signup = () => {
       <div className="hidden lg:flex w-1/2 items-center justify-center bg-slate-50 border-r border-slate-100 p-12">
         <div className="max-w-md text-center animate-in fade-in slide-in-from-left-6 duration-300">
           <img
-            src="/auth-image.png"
+            src="../public/pdf-illustration.png"
             alt="PDF Tools Illustration"
             className="w-full max-w-xs mx-auto mb-8 drop-shadow-sm"
           />
@@ -89,7 +89,7 @@ const Signup = () => {
           <div className="flex justify-center mb-6">
             <Link to="/">
               <img
-                src="/logo.png"
+                src="../public/slate.png"
                 alt="Slate Logo"
                 className="h-14 w-auto"
               />

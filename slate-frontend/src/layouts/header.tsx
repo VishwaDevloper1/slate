@@ -24,7 +24,7 @@ export default function Header() {
         <div className="flex items-center gap-12">
           <Link to="/" className="shrink-0 transition-transform active:scale-95">
             <img
-              src="/logo.png"
+              src="../public/Slate.png"
               alt="Slate Logo"
               className="h-11 w-auto sm:h-12" // Increased logo scaling footprint
             />

@@ -48,12 +48,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-white font-sans">
+    <div className="min-h-screen flex bg-white font-sans select-none">
+      
       {/* LEFT SIDE ILLUSTRATION PANEL */}
       <div className="hidden lg:flex w-1/2 items-center justify-center bg-slate-50 border-r border-slate-100 p-12">
         <div className="max-w-md text-center animate-in fade-in slide-in-from-left-6 duration-300">
           <img
-            src="/auth-image.png"
+            src="../public/pdf-illustration.png"
             alt="PDF Management Illustration"
             className="w-full max-w-sm mx-auto mb-10 drop-shadow-sm"
           />
@@ -76,7 +77,7 @@ const Login = () => {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="inline-flex items-center gap-2.5 text-sm font-bold text-slate-500 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-[0.98] group select-none"
+            className="inline-flex items-center gap-2.5 text-sm font-bold text-slate-500 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow active:scale-[0.98] group select-none cursor-pointer"
           >
             <span className="p-1 rounded-full bg-slate-50 group-hover:bg-red-100 text-slate-400 group-hover:text-red-600 transition-colors flex items-center justify-center">
               <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
@@ -89,11 +90,11 @@ const Login = () => {
           
           {/* Brand Logo Display Area */}
           <div className="flex justify-center mb-8">
-            <Link to="/" className="transition-transform active:scale-95">
+            <Link to="/" className="transition-transform active:scale-95 block">
               <img
-                src="/logo.png"
+                src="../public/slate.png" // Updated to direct browser-resolvable public root path folder
                 alt="Slate Logo"
-                className="h-16 w-auto"
+                className="h-14 w-auto object-contain"
               />
             </Link>
           </div>
@@ -122,7 +123,7 @@ const Login = () => {
                 required
                 disabled={loading}
                 placeholder="name@example.com"
-                className="w-full text-base rounded-xl border border-slate-200 px-4 py-4 outline-none transition-all placeholder:text-slate-300 bg-white disabled:bg-slate-50 focus:border-red-500 focus:ring-4 focus:ring-red-100"
+                className="w-full text-base rounded-xl border border-slate-200 px-4 py-4 outline-none transition-all placeholder:text-slate-300 bg-white disabled:bg-slate-50/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
               />
             </div>
 
@@ -139,13 +140,13 @@ const Login = () => {
                   required
                   disabled={loading}
                   placeholder="Enter security credentials"
-                  className="w-full text-base rounded-xl border border-slate-200 px-4 py-4 pr-12 outline-none transition-all placeholder:text-slate-300 bg-white disabled:bg-slate-50 focus:border-red-500 focus:ring-4 focus:ring-red-100"
+                  className="w-full text-base rounded-xl border border-slate-200 px-4 py-4 pr-12 outline-none transition-all placeholder:text-slate-300 bg-white disabled:bg-slate-50/50 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
                 />
 
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg cursor-pointer"
                 >
                   {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                 </button>
@@ -175,7 +176,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full rounded-xl py-4 font-bold text-base text-white transition-all shadow-lg ${
+              className={`w-full rounded-xl py-4 font-bold text-base text-white transition-all shadow-lg cursor-pointer ${
                 loading 
                   ? "bg-slate-300 text-slate-500 cursor-not-allowed shadow-none" 
                   : "bg-red-600 hover:bg-red-700 shadow-red-600/10 active:scale-[0.99]"
