@@ -1,7 +1,9 @@
 import io
+import zipfile
 import fitz  # PyMuPDF
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import StreamingResponse
+from typing import List
 
 router = APIRouter(
     prefix="/pdf",
@@ -10,71 +12,88 @@ router = APIRouter(
 
 @router.post("/compress")
 async def compress_pdf(
-    file: UploadFile = File(...),
-    level: str = Form("medium")  # accepts: "low", "medium", "high"
+    files: List[UploadFile] = File(...),  # 👈 Fixed: Now captures dynamic multiple file lists
+    level: str = Form("medium")           # accepts: "low", "medium", "high"
 ):
-    if not file.filename.lower().endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="Provided document is not a valid PDF file format.")
+    if not files:
+        raise HTTPException(status_code=400, detail="No documents provided in upload matrix.")
+
+    # Select compression parameters based on target choice profile
+    if level == "low":
+        jpeg_quality = 85
+    elif level == "medium":
+        jpeg_quality = 65
+    else:
+        jpeg_quality = 40
+
+    def process_single_pdf(file_bytes: bytes) -> bytes:
+        """Helper method to parse and compress a single PDF byte structure"""
+        try:
+            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            
+            for page in doc:
+                image_list = page.get_images(full=True)
+                for img_info in image_list:
+                    xref = img_info[0]
+                    try:
+                        pix = fitz.Pixmap(doc, xref)
+                        if pix.n - pix.alpha > 3:
+                            pix = fitz.Pixmap(fitz.csRGB, pix)
+                            
+                        compressed_img_bytes = pix.tobytes("jpeg", jpeg_quality=jpeg_quality)
+                        doc.replace_image(xref, stream=compressed_img_bytes, filename="optimized.jpg")
+                    except Exception:
+                        continue
+
+            single_buffer = io.BytesIO()
+            doc.save(single_buffer, garbage=4, deflate=True)
+            doc.close()
+            return single_buffer.getvalue()
+        except Exception as e:
+            raise ValueError(f"Processing node corrupted: {str(e)}")
 
     try:
-        # Read uploaded bytes directly into an in-memory document
-        pdf_bytes = await file.read()
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-        
-        # Define image resolution (DPI) and JPEG quality compression parameters based on selection
-        if level == "low":
-            # Light compression: Keeps document razor sharp
-            dpi = 200
-            jpeg_quality = 85
-        elif level == "medium":
-            # Balanced compression: Noticeable size savings, still good quality
-            dpi = 150
-            jpeg_quality = 65
+        # ==========================================
+        # CASE 1: Batch Process Multiple Documents
+        # ==========================================
+        if len(files) > 1:
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                for idx, upload_file in enumerate(files):
+                    if not upload_file.filename.lower().endswith('.pdf'):
+                        continue
+                    
+                    raw_bytes = await upload_file.read()
+                    compressed_bytes = process_single_pdf(raw_bytes)
+                    
+                    filename = upload_file.filename if upload_file.filename else f"document_{idx+1}.pdf"
+                    zip_file.writestr(f"compressed_{filename}", compressed_bytes)
+
+            zip_buffer.seek(0)
+            return StreamingResponse(
+                zip_buffer,
+                media_type="application/zip",
+                headers={"Content-Disposition": "attachment; filename=compressed_collection.zip"}
+            )
+
+        # ==========================================
+        # CASE 2: Process Single Isolated Document
+        # ==========================================
         else:
-            # High compression: Maximum size reduction, lowers image detail
-            dpi = 96
-            jpeg_quality = 40
+            target_file = files[0]
+            if not target_file.filename.lower().endswith('.pdf'):
+                raise HTTPException(status_code=400, detail="Provided document is not a valid PDF format.")
 
-        # Step 1: Optimize images across every page
-        for page in doc:
-            image_list = page.get_images(full=True)
-            for img_info in image_list:
-                xref = img_info[0]
-                
-                try:
-                    # Extract raw image bytes and scale down resolution
-                    pix = fitz.Pixmap(doc, xref)
-                    
-                    # Convert to RGB color workspace if it's CMYK or specialized
-                    if pix.n - pix.alpha > 3:
-                        pix = fitz.Pixmap(fitz.csRGB, pix)
-                        
-                    # Re-encode image payload data with specific lossy JPEG compression limits
-                    compressed_img_bytes = pix.tobytes("jpeg", jpeg_quality=jpeg_quality)
-                    
-                    # Replace the heavy native object inside the PDF matrix stream
-                    doc.replace_image(xref, stream=compressed_img_bytes, filename="optimized.jpg")
-                except Exception:
-                    # If an image type is un-streamable (e.g. certain masks), safely skip it
-                    continue
-
-        # Step 2: Use internal garbage collection to delete loose metadata and orphaned structures
-        output_buffer = io.BytesIO()
-        doc.save(
-            output_buffer,
-            garbage=4,             # Cleans out duplicate objects and structural garbage
-            deflate=True           # Losslessly squashes text content and data trees via zlib
-        )
-        
-        doc.close()
-        output_buffer.seek(0)
-
-        return StreamingResponse(
-            output_buffer,
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=compressed_{file.filename}"}
-        )
+            raw_bytes = await target_file.read()
+            compressed_bytes = process_single_pdf(raw_bytes)
+            
+            output_buffer = io.BytesIO(compressed_bytes)
+            return StreamingResponse(
+                output_buffer,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename=compressed_{target_file.filename}"}
+            )
 
     except Exception as e:
         print(f"Server-side optimization failure track: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server runtime failed scaling file assets.")
+        raise HTTPException(status_code=500, detail=f"Internal engine failed processing: {str(e)}")
